@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -50,8 +51,8 @@ export default function Sidebar() {
     <aside className="flex flex-col w-64 min-h-screen bg-val-surface border-r border-val-border shrink-0">
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-5 border-b border-val-border">
-        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-val-bg border border-val-border val-glow-sm shrink-0">
-          <span className="text-sm font-bold text-val-primary">#</span>
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden border border-val-border val-glow-sm shrink-0">
+          <Image src="/logo.jpg" alt="Val AI OS" width={40} height={40} unoptimized className="object-cover w-full h-full" />
         </div>
         <div>
           <p className="text-sm font-bold text-val-text leading-none">#Val AI OS</p>

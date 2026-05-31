@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -43,8 +44,8 @@ export default function LoginPage() {
       <div className="relative w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-val-surface border border-val-border val-glow mb-4">
-            <span className="text-2xl font-bold text-val-primary">#</span>
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl overflow-hidden border border-val-border val-glow mb-4">
+            <Image src="/logo.jpg" alt="Val AI OS" width={80} height={80} unoptimized className="object-cover w-full h-full" />
           </div>
           <h1 className="text-2xl font-bold text-val-text">#Val AI OS</h1>
           <p className="text-val-subtle text-sm mt-1">Accès sécurisé au dashboard</p>
