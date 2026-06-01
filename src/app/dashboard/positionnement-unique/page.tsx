@@ -119,7 +119,9 @@ export default function PositionnementUniquePage() {
       }
 
       // Extraire progression
+      console.log("LAST 100:", accumulated.slice(-100));
       const progress = extractProgress(accumulated);
+      console.log("PROGRESS:", progress);
       if (progress) {
         const { etape: newEtape, pct: newPct } = progress;
         if (newEtape >= 1 && newEtape <= 6) {
