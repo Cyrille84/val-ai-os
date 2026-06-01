@@ -156,12 +156,20 @@ export default function PositionnementUniquePage() {
         }
       }
 
+      // Extraire étape et pct directement avec regex simple
+      const etapeMatch = accumulated.match(/"etape"\s*:\s*(\d+)/);
+      const pctMatch = accumulated.match(/"pct"\s*:\s*(\d+)/);
+      if (etapeMatch) {
+        const newEtape = parseInt(etapeMatch[1]);
+        const newPct = pctMatch ? parseInt(pctMatch[1]) : (newEtape - 1) * 20;
+        if (newEtape > 0 && newEtape <= 6) setEtape(newEtape);
+        if (newPct >= 0 && newPct <= 100) setPct(newPct);
+        if (newEtape >= 6) setDone(true);
+      }
+      // Extraire recap si présent
       const ex = extractJSON(accumulated);
-      if (ex) {
-        setEtape(ex.etape ?? etape);
-        setPct(ex.pct ?? pct);
-        if (ex.recap && Object.keys(ex.recap).length > 0) setRecap(r => ({ ...r, ...ex.recap }));
-        if (ex.etape >= 6) setDone(true);
+      if (ex?.recap && Object.keys(ex.recap).length > 0) {
+        setRecap(r => ({ ...r, ...ex.recap }));
       }
 
       setMessages(prev => {
