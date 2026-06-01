@@ -21,9 +21,27 @@ interface Recap {
 }
 
 function extractJSON(text: string) {
-  const match = text.match(/\{"etape"\s*:\s*\d+[^}]*\}/);
-  if (!match) return null;
-  try { return JSON.parse(match[0]); } catch { return null; }
+  const patterns = [
+    /\{"etape"\s*:\s*(\d+)\s*,\s*"pct"\s*:\s*(\d+)[^}]*\}/,
+    /\{"etape"\s*:\s*(\d+)[^}]*\}/,
+  ];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      try { return JSON.parse(match[0]); } catch { /* skip */ }
+    }
+  }
+  // Fallback : extraire etape et pct manuellement
+  const etapeMatch = text.match(/"etape"\s*:\s*(\d+)/);
+  const pctMatch = text.match(/"pct"\s*:\s*(\d+)/);
+  if (etapeMatch) {
+    return {
+      etape: parseInt(etapeMatch[1]),
+      pct: pctMatch ? parseInt(pctMatch[1]) : (parseInt(etapeMatch[1]) - 1) * 20,
+      recap: {}
+    };
+  }
+  return null;
 }
 
 function cleanText(text: string) {
