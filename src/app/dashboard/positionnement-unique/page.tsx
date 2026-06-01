@@ -27,7 +27,11 @@ function extractJSON(text: string) {
 }
 
 function cleanText(text: string) {
-  return text.replace(/\{"etape"\s*:\s*\d+[^}]*\}/g, "").replace(/\n{3,}/g, "\n\n").trim();
+  return text
+    .replace(/\{[\s\S]*?"etape"[\s\S]*?\}/g, "")
+    .replace(/\}\s*$/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function parseOptions(text: string) {
@@ -333,8 +337,8 @@ export default function PositionnementUniquePage() {
             <div key={e} className={clsx(
               "flex-1 py-1.5 px-1 rounded-lg text-center text-xs font-medium transition-all",
               i + 1 < ei ? "bg-green-400/15 text-green-400" :
-              i + 1 === ei ? "bg-val-primary text-white" :
-              "bg-val-muted text-val-subtle/40"
+                i + 1 === ei ? "bg-val-primary text-white" :
+                  "bg-val-muted text-val-subtle/40"
             )}>
               {i + 1 < ei ? "✓" : i + 1}
             </div>
