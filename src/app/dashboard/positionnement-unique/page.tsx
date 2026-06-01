@@ -21,7 +21,6 @@ interface Recap {
 }
 
 function extractProgress(text: string): { etape: number; pct: number } | null {
-  // Cherche "etape":X dans le texte
   const etapeMatch = text.match(/"etape"\s*:\s*(\d+)/);
   const pctMatch = text.match(/"pct"\s*:\s*(\d+)/);
   if (etapeMatch) {
@@ -32,20 +31,10 @@ function extractProgress(text: string): { etape: number; pct: number } | null {
   return null;
 }
 
-function extractRecap(text: string): Partial<Recap> {
-  try {
-    const match = text.match(/\{[^{}]*"recap"\s*:\s*\{([^{}]*)\}[^{}]*\}/);
-    if (match) {
-      const full = JSON.parse(match[0]);
-      if (full.recap) return full.recap;
-    }
-  } catch { /* skip */ }
-  return {};
-}
-
 function cleanText(text: string): string {
+  // Supprime le tag JSON {"etape":X,"pct":Y} et variantes
   return text
-    .replace(/\{[^{}]*"etape"[^{}]*\}?/g, "")
+    .replace(/\{[^{}]{0,100}"etape"[^{}]{0,200}\}?\}?/g, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
@@ -54,12 +43,20 @@ function parseOptions(text: string): string[] {
   const options: string[] = [];
   const lines = text.split("\n");
   let cur = "";
+  let count = 0;
   for (const line of lines) {
-    const m = line.match(/^(Option\s*[123]|[123][.):])\s*[-:]?\s*(.+)/i);
-    if (m) { if (cur) options.push(cur.trim()); cur = m[2]; }
-    else if (cur && line.trim()) cur += " " + line.trim();
+    // Cherche uniquement "Option 1", "Option 2", "Option 3" avec majuscule
+    const m = line.match(/^(?:\*\*)?Option\s+([123])(?:\*\*)?\s*[—\-:]\s*(.+)/i);
+    if (m) {
+      if (cur) options.push(cur.trim());
+      cur = m[2].replace(/\*\*/g, "").trim();
+      count++;
+      if (count >= 3) { options.push(cur.trim()); break; }
+    } else if (cur && line.trim() && !line.match(/^(?:\*\*)?Option\s+/i)) {
+      cur += " " + line.trim();
+    }
   }
-  if (cur) options.push(cur.trim());
+  if (cur && options.length < 3) options.push(cur.trim());
   return options.slice(0, 3);
 }
 
@@ -118,10 +115,8 @@ export default function PositionnementUniquePage() {
         }
       }
 
-      // Extraire progression
-      console.log("LAST 100:", accumulated.slice(-100));
+      // Extraire progression AVANT de nettoyer
       const progress = extractProgress(accumulated);
-      console.log("PROGRESS:", progress);
       if (progress) {
         const { etape: newEtape, pct: newPct } = progress;
         if (newEtape >= 1 && newEtape <= 6) {
@@ -129,12 +124,6 @@ export default function PositionnementUniquePage() {
           setPct(Math.min(100, newPct));
           if (newEtape >= 6) setDone(true);
         }
-      }
-
-      // Extraire recap
-      const newRecap = extractRecap(accumulated);
-      if (Object.keys(newRecap).length > 0) {
-        setRecap(r => ({ ...r, ...newRecap }));
       }
 
       // Nettoyer le texte affiché
@@ -298,8 +287,6 @@ export default function PositionnementUniquePage() {
   // ── ÉCRAN PRINCIPAL ──
   return (
     <div className="max-w-2xl mx-auto space-y-4 animate-fade-in py-4">
-
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/dashboard/agents" className="text-val-subtle hover:text-val-text transition-colors">
@@ -315,7 +302,6 @@ export default function PositionnementUniquePage() {
         </button>
       </div>
 
-      {/* Étapes */}
       <div className="val-card p-3 space-y-2">
         <div className="flex gap-1">
           {ETAPES.map((e, i) => (
@@ -335,7 +321,6 @@ export default function PositionnementUniquePage() {
         <p className="text-xs text-val-primary font-medium text-right">{pct}% — Étape {ei}/5 : {ETAPES[ei - 1]}</p>
       </div>
 
-      {/* Messages */}
       <div className="val-card p-4 space-y-4 min-h-96 max-h-[480px] overflow-y-auto">
         {messages.map((m, idx) => (
           <div key={idx} className={clsx("flex gap-2", m.role === "user" ? "justify-end" : "justify-start")}>
@@ -362,7 +347,6 @@ export default function PositionnementUniquePage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Options */}
       {options.length === 3 && (
         <div className="space-y-2">
           {options.map((opt, i) => (
@@ -378,7 +362,6 @@ export default function PositionnementUniquePage() {
         </div>
       )}
 
-      {/* Input */}
       <div className="flex gap-2">
         <textarea
           value={input}
