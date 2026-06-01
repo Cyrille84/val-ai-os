@@ -9,19 +9,19 @@ import clsx from "clsx";
 // ─── Agent Card ─────────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<Agent["status"], string> = {
-  idle:    "bg-val-muted text-val-subtle",
+  idle: "bg-val-muted text-val-subtle",
   running: "bg-green-400/15 text-green-400 border border-green-400/30",
-  paused:  "bg-yellow-400/15 text-yellow-400 border border-yellow-400/30",
-  error:   "bg-red-400/15 text-red-400 border border-red-400/30",
+  paused: "bg-yellow-400/15 text-yellow-400 border border-yellow-400/30",
+  error: "bg-red-400/15 text-red-400 border border-red-400/30",
 };
 
 const AGENT_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  "super-agent":           { bg: "bg-val-primary/10",  border: "border-val-primary/20",  text: "text-val-primary" },
-  "agent-positionnement":  { bg: "bg-blue-400/10",     border: "border-blue-400/20",     text: "text-blue-400" },
-  "agent-attraction":      { bg: "bg-emerald-400/10",  border: "border-emerald-400/20",  text: "text-emerald-400" },
-  "agent-education":       { bg: "bg-violet-400/10",   border: "border-violet-400/20",   text: "text-violet-400" },
-  "agent-conversion":      { bg: "bg-orange-400/10",   border: "border-orange-400/20",   text: "text-orange-400" },
-  "agent-scale":           { bg: "bg-cyan-400/10",     border: "border-cyan-400/20",     text: "text-cyan-400" },
+  "super-agent": { bg: "bg-val-primary/10", border: "border-val-primary/20", text: "text-val-primary" },
+  "agent-positionnement": { bg: "bg-blue-400/10", border: "border-blue-400/20", text: "text-blue-400" },
+  "agent-attraction": { bg: "bg-emerald-400/10", border: "border-emerald-400/20", text: "text-emerald-400" },
+  "agent-education": { bg: "bg-violet-400/10", border: "border-violet-400/20", text: "text-violet-400" },
+  "agent-conversion": { bg: "bg-orange-400/10", border: "border-orange-400/20", text: "text-orange-400" },
+  "agent-scale": { bg: "bg-cyan-400/10", border: "border-cyan-400/20", text: "text-cyan-400" },
 };
 
 const CORE_IDS = ["super-agent", "agent-positionnement", "agent-attraction", "agent-education", "agent-conversion", "agent-scale"];
@@ -59,19 +59,28 @@ function AgentCard({ agent }: { agent: Agent }) {
 
       <div className="flex items-center justify-between pt-1">
         <span className="text-xs font-mono text-val-subtle/60 bg-val-muted px-2 py-0.5 rounded">{agent.model}</span>
-        <button
-          onClick={() => updateAgent(agent.id, { status: agent.status === "running" ? "idle" : "running" })}
-          className={clsx(
-            "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all",
-            agent.status === "running"
-              ? "bg-yellow-400/15 text-yellow-400 hover:bg-yellow-400/25"
-              : "bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
-          )}
-        >
-          {agent.status === "running" ? <><Pause size={12} /> Pause</> : <><Play size={12} /> Start</>}
-        </button>
-      </div>
+        {agent.id === "agent-positionnement" ? (
+
+          href = "/dashboard/positionnement-unique"
+    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
+  >
+        <Play size={12} /> Ouvrir
+      </a>
+      ) : (
+      <button
+        onClick={() => updateAgent(agent.id, { status: agent.status === "running" ? "idle" : "running" })}
+        className={clsx(
+          "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all",
+          agent.status === "running"
+            ? "bg-yellow-400/15 text-yellow-400 hover:bg-yellow-400/25"
+            : "bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
+        )}
+      >
+        {agent.status === "running" ? <><Pause size={12} /> Pause</> : <><Play size={12} /> Start</>}
+      </button>
+)}
     </div>
+    </div >
   );
 }
 
