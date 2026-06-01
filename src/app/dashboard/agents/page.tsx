@@ -6,8 +6,6 @@ import type { Agent } from "@/types";
 import { Bot, Plus, Send, Trash2, Play, Pause, X, Loader2, Trash } from "lucide-react";
 import clsx from "clsx";
 
-// ─── Agent Card ─────────────────────────────────────────────────────────────
-
 const STATUS_COLORS: Record<Agent["status"], string> = {
   idle: "bg-val-muted text-val-subtle",
   running: "bg-green-400/15 text-green-400 border border-green-400/30",
@@ -60,31 +58,29 @@ function AgentCard({ agent }: { agent: Agent }) {
       <div className="flex items-center justify-between pt-1">
         <span className="text-xs font-mono text-val-subtle/60 bg-val-muted px-2 py-0.5 rounded">{agent.model}</span>
         {agent.id === "agent-positionnement" ? (
-
-          href = "/dashboard/positionnement-unique"
-    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
-  >
-        <Play size={12} /> Ouvrir
-      </a>
-      ) : (
-      <button
-        onClick={() => updateAgent(agent.id, { status: agent.status === "running" ? "idle" : "running" })}
-        className={clsx(
-          "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all",
-          agent.status === "running"
-            ? "bg-yellow-400/15 text-yellow-400 hover:bg-yellow-400/25"
-            : "bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
+          <a
+            href="/dashboard/positionnement-unique"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
+          >
+            <Play size={12} /> Ouvrir
+          </a>
+        ) : (
+          <button
+            onClick={() => updateAgent(agent.id, { status: agent.status === "running" ? "idle" : "running" })}
+            className={clsx(
+              "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all",
+              agent.status === "running"
+                ? "bg-yellow-400/15 text-yellow-400 hover:bg-yellow-400/25"
+                : "bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
+            )}
+          >
+            {agent.status === "running" ? <><Pause size={12} /> Pause</> : <><Play size={12} /> Start</>}
+          </button>
         )}
-      >
-        {agent.status === "running" ? <><Pause size={12} /> Pause</> : <><Play size={12} /> Start</>}
-      </button>
-)}
+      </div>
     </div>
-    </div >
   );
 }
-
-// ─── New Agent Modal ─────────────────────────────────────────────────────────
 
 function NewAgentModal({ onClose }: { onClose: () => void }) {
   const addAgent = useAgentStore((s) => s.addAgent);
@@ -148,15 +144,12 @@ function NewAgentModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ─── Super Agent Chat ────────────────────────────────────────────────────────
-
 function SuperAgentChat() {
   const { messages, addMessage, updateMessage, clearMessages } = useChatStore();
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -169,7 +162,6 @@ function SuperAgentChat() {
     setInput("");
     setLoading(true);
 
-    // Add user message
     addMessage({
       id: `m${Date.now()}`,
       role: "user",
@@ -177,7 +169,6 @@ function SuperAgentChat() {
       timestamp: new Date().toISOString(),
     });
 
-    // Add empty assistant message to stream into
     const assistantId = `m${Date.now() + 1}`;
     addMessage({
       id: assistantId,
@@ -187,7 +178,6 @@ function SuperAgentChat() {
     });
 
     try {
-      // Build conversation history for the API (user + assistant only, non-empty)
       const history = messages
         .filter((m) => (m.role === "user" || m.role === "assistant") && m.content.trim())
         .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
@@ -232,7 +222,7 @@ function SuperAgentChat() {
               updateMessage(assistantId, accumulated);
             }
           } catch {
-            // incomplete JSON chunk, skip
+            // skip
           }
         }
       }
@@ -245,7 +235,6 @@ function SuperAgentChat() {
 
   return (
     <div className="val-card flex flex-col" style={{ height: "480px" }}>
-      {/* Header */}
       <div className="px-4 py-3 border-b border-val-border flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -259,16 +248,11 @@ function SuperAgentChat() {
             <p className="text-xs text-val-subtle mt-0.5">COO · claude-sonnet-4-6</p>
           </div>
         </div>
-        <button
-          onClick={clearMessages}
-          title="Effacer la conversation"
-          className="text-val-subtle hover:text-val-primary transition-colors p-1.5 rounded-lg hover:bg-val-primary/10"
-        >
+        <button onClick={clearMessages} title="Effacer la conversation" className="text-val-subtle hover:text-val-primary transition-colors p-1.5 rounded-lg hover:bg-val-primary/10">
           <Trash size={14} />
         </button>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
@@ -307,7 +291,6 @@ function SuperAgentChat() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <form onSubmit={send} className="flex gap-2 p-3 border-t border-val-border shrink-0">
         <input
           value={input}
@@ -327,8 +310,6 @@ function SuperAgentChat() {
     </div>
   );
 }
-
-// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function AgentsPage() {
   const agents = useAgentStore((s) => s.agents);
@@ -352,10 +333,8 @@ export default function AgentsPage() {
         </button>
       </div>
 
-      {/* Super Agent Chat */}
       <SuperAgentChat />
 
-      {/* Core agents */}
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-val-subtle/50 mb-3">Équipe #Val</p>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -363,7 +342,6 @@ export default function AgentsPage() {
         </div>
       </div>
 
-      {/* Custom agents */}
       {customAgents.length > 0 && (
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-val-subtle/50 mb-3">Agents personnalisés</p>
