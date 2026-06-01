@@ -45,8 +45,7 @@ function extractRecap(text: string): Partial<Recap> {
 
 function cleanText(text: string): string {
   return text
-    .replace(/\{[^{}]*"etape"[^{}]*\}/g, "")
-    .replace(/\}\s*$/gm, "")
+    .replace(/\{[^{}]*"etape"[^{}]*\}?/g, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
