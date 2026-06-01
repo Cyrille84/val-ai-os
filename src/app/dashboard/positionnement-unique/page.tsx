@@ -20,40 +20,38 @@ interface Recap {
   offre?: string;
 }
 
-function extractJSON(text: string) {
-  const patterns = [
-    /\{"etape"\s*:\s*(\d+)\s*,\s*"pct"\s*:\s*(\d+)[^}]*\}/,
-    /\{"etape"\s*:\s*(\d+)[^}]*\}/,
-  ];
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) {
-      try { return JSON.parse(match[0]); } catch { /* skip */ }
-    }
-  }
-  // Fallback : extraire etape et pct manuellement
-  console.log("ACCUMULATED LAST 200 CHARS:", text.slice(-200));;
+function extractProgress(text: string): { etape: number; pct: number } | null {
+  // Cherche "etape":X dans le texte
   const etapeMatch = text.match(/"etape"\s*:\s*(\d+)/);
   const pctMatch = text.match(/"pct"\s*:\s*(\d+)/);
   if (etapeMatch) {
-    return {
-      etape: parseInt(etapeMatch[1]),
-      pct: pctMatch ? parseInt(pctMatch[1]) : (parseInt(etapeMatch[1]) - 1) * 20,
-      recap: {}
-    };
+    const etape = parseInt(etapeMatch[1]);
+    const pct = pctMatch ? parseInt(pctMatch[1]) : etape * 20;
+    return { etape, pct };
   }
   return null;
 }
 
-function cleanText(text: string) {
+function extractRecap(text: string): Partial<Recap> {
+  try {
+    const match = text.match(/\{[^{}]*"recap"\s*:\s*\{([^{}]*)\}[^{}]*\}/);
+    if (match) {
+      const full = JSON.parse(match[0]);
+      if (full.recap) return full.recap;
+    }
+  } catch { /* skip */ }
+  return {};
+}
+
+function cleanText(text: string): string {
   return text
-    .replace(/\{[\s\S]*?"etape"[\s\S]*?\}/g, "")
+    .replace(/\{[^{}]*"etape"[^{}]*\}/g, "")
     .replace(/\}\s*$/gm, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
-function parseOptions(text: string) {
+function parseOptions(text: string): string[] {
   const options: string[] = [];
   const lines = text.split("\n");
   let cur = "";
@@ -83,45 +81,9 @@ export default function PositionnementUniquePage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  async function callAPI(msgs: Message[]) {
-    const res = await fetch("/api/agent-positionnement-unique", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: msgs, prenom }),
-    });
-    if (!res.ok || !res.body) throw new Error("Erreur API");
-
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let accumulated = "";
-
-    return new ReadableStream({
-      async start(controller) {
-        while (true) {
-          const { done: d, value } = await reader.read();
-          if (d) { controller.close(); break; }
-          const raw = decoder.decode(value, { stream: true });
-          for (const line of raw.split("\n")) {
-            if (!line.startsWith("data: ")) continue;
-            const payload = line.slice(6).trim();
-            if (payload === "[DONE]") { controller.close(); return; }
-            try {
-              const parsed = JSON.parse(payload);
-              if (parsed.text) {
-                accumulated += parsed.text;
-                controller.enqueue(accumulated);
-              }
-            } catch { /* skip */ }
-          }
-        }
-      }
-    });
-  }
-
   async function streamResponse(msgs: Message[]) {
     setLoading(true);
-    const assistantMsg: Message = { role: "assistant", content: "" };
-    setMessages(prev => [...prev, assistantMsg]);
+    setMessages(prev => [...prev, { role: "assistant", content: "" }]);
 
     try {
       const res = await fetch("/api/agent-positionnement-unique", {
@@ -157,22 +119,24 @@ export default function PositionnementUniquePage() {
         }
       }
 
-      // Extraire étape et pct directement avec regex simple
-      const etapeMatch = accumulated.match(/"etape"\s*:\s*(\d+)/);
-      const pctMatch = accumulated.match(/"pct"\s*:\s*(\d+)/);
-      if (etapeMatch) {
-        const newEtape = parseInt(etapeMatch[1]);
-        const newPct = pctMatch ? parseInt(pctMatch[1]) : (newEtape - 1) * 20;
-        if (newEtape > 0 && newEtape <= 6) setEtape(newEtape);
-        if (newPct >= 0 && newPct <= 100) setPct(newPct);
-        if (newEtape >= 6) setDone(true);
-      }
-      // Extraire recap si présent
-      const ex = extractJSON(accumulated);
-      if (ex?.recap && Object.keys(ex.recap).length > 0) {
-        setRecap(r => ({ ...r, ...ex.recap }));
+      // Extraire progression
+      const progress = extractProgress(accumulated);
+      if (progress) {
+        const { etape: newEtape, pct: newPct } = progress;
+        if (newEtape >= 1 && newEtape <= 6) {
+          setEtape(newEtape);
+          setPct(Math.min(100, newPct));
+          if (newEtape >= 6) setDone(true);
+        }
       }
 
+      // Extraire recap
+      const newRecap = extractRecap(accumulated);
+      if (Object.keys(newRecap).length > 0) {
+        setRecap(r => ({ ...r, ...newRecap }));
+      }
+
+      // Nettoyer le texte affiché
       setMessages(prev => {
         const updated = [...prev];
         updated[updated.length - 1] = { role: "assistant", content: cleanText(accumulated) };
@@ -193,7 +157,6 @@ export default function PositionnementUniquePage() {
   async function start() {
     if (!prenom.trim()) return;
     setStarted(true);
-    setLoading(true);
     await streamResponse([{ role: "user", content: `Démarre la session de coaching pour ${prenom}.` }]);
   }
 
@@ -227,7 +190,7 @@ export default function PositionnementUniquePage() {
     ];
     keys.forEach((k, i) => { lines.push(`${i + 1}. ${labels[i]}`); lines.push(recap[k] || "—"); lines.push(""); });
     lines.push("=".repeat(50));
-    lines.push("vachealait.ai — Apprends — Construis — Gagne de l'argent avec l'IA");
+    lines.push("vachealait.ai — MODÉLISE → CONSTRUIS → AUTOMATISE");
     return lines.join("\n");
   }
 
@@ -250,6 +213,7 @@ export default function PositionnementUniquePage() {
 
   const lastAssistant = [...messages].reverse().find(m => m.role === "assistant");
   const options = lastAssistant && !loading ? parseOptions(lastAssistant.content) : [];
+  const ei = Math.max(1, Math.min(etape, 5));
 
   // ── ÉCRAN DE DÉMARRAGE ──
   if (!started) {
@@ -266,7 +230,6 @@ export default function PositionnementUniquePage() {
               Ton coach IA #Val analyse le marché et te guide.
             </p>
           </div>
-
           <div className="space-y-3">
             <div>
               <label className="text-xs text-val-subtle mb-1.5 block font-medium">Ton prénom</label>
@@ -286,7 +249,6 @@ export default function PositionnementUniquePage() {
               Démarrer mon coaching
             </button>
           </div>
-
           <div className="flex items-center justify-between pt-2">
             <Link href="/dashboard/agents" className="flex items-center gap-1.5 text-xs text-val-subtle hover:text-val-text transition-colors">
               <ArrowLeft size={13} /> Retour aux agents
@@ -309,7 +271,6 @@ export default function PositionnementUniquePage() {
           <h2 className="text-xl font-bold text-val-text">Bravo {prenom} !</h2>
           <p className="text-val-subtle text-sm">Ton positionnement unique #Val est prêt.</p>
         </div>
-
         <div className="space-y-3">
           {keys.map((k, i) => (
             <div key={k} className="val-card p-4 space-y-1">
@@ -318,7 +279,6 @@ export default function PositionnementUniquePage() {
             </div>
           ))}
         </div>
-
         <div className="flex gap-3">
           <button onClick={download} className="flex-1 flex items-center justify-center gap-2 bg-val-primary hover:bg-val-primary/90 text-white font-semibold py-3 rounded-xl text-sm transition-all val-glow-sm">
             <Download size={15} /> Télécharger
@@ -327,7 +287,6 @@ export default function PositionnementUniquePage() {
             {copied ? <><Check size={15} className="text-green-400" /> Copié !</> : <><Copy size={15} /> Copier</>}
           </button>
         </div>
-
         <button onClick={reset} className="w-full flex items-center justify-center gap-2 text-val-subtle hover:text-val-text text-sm transition-colors py-2">
           <RotateCcw size={14} /> Recommencer
         </button>
@@ -336,8 +295,6 @@ export default function PositionnementUniquePage() {
   }
 
   // ── ÉCRAN PRINCIPAL ──
-  const ei = Math.max(1, Math.min(etape, 5));
-
   return (
     <div className="max-w-2xl mx-auto space-y-4 animate-fade-in py-4">
 
@@ -374,7 +331,7 @@ export default function PositionnementUniquePage() {
         <div className="h-1.5 bg-val-muted rounded-full overflow-hidden">
           <div className="h-full bg-val-primary rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
-        <p className="text-xs text-val-subtle text-right">{pct}% — Étape {ei}/5 : {ETAPES[ei - 1]}</p>
+        <p className="text-xs text-val-primary font-medium text-right">{pct}% — Étape {ei}/5 : {ETAPES[ei - 1]}</p>
       </div>
 
       {/* Messages */}
@@ -440,7 +397,7 @@ export default function PositionnementUniquePage() {
         </button>
       </div>
 
-      <p className="text-center text-xs text-val-subtle/40 italic">vachealait.ai — Apprends — Construis — Gagne de l'argent avec l'IA</p>
+      <p className="text-center text-xs text-val-subtle/40 italic">vachealait.ai — MODÉLISE → CONSTRUIS → AUTOMATISE</p>
     </div>
   );
 }
