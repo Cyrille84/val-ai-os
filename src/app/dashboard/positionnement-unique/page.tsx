@@ -32,32 +32,10 @@ function extractProgress(text: string): { etape: number; pct: number } | null {
 }
 
 function cleanText(text: string): string {
-  // Supprime le tag JSON {"etape":X,"pct":Y} et variantes
   return text
-    .replace(/\{[^{}]{0,100}"etape"[^{}]{0,200}\}?\}?/g, "")
+    .replace(/\n?\{[^\n]*"etape"[^\n]*\}?\n?/g, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
-}
-
-function parseOptions(text: string): string[] {
-  const options: string[] = [];
-  const lines = text.split("\n");
-  let cur = "";
-  let count = 0;
-  for (const line of lines) {
-    // Cherche uniquement "Option 1", "Option 2", "Option 3" avec majuscule
-    const m = line.match(/^(?:\*\*)?Option\s+([123])(?:\*\*)?\s*[—\-:]\s*(.+)/i);
-    if (m) {
-      if (cur) options.push(cur.trim());
-      cur = m[2].replace(/\*\*/g, "").trim();
-      count++;
-      if (count >= 3) { options.push(cur.trim()); break; }
-    } else if (cur && line.trim() && !line.match(/^(?:\*\*)?Option\s+/i)) {
-      cur += " " + line.trim();
-    }
-  }
-  if (cur && options.length < 3) options.push(cur.trim());
-  return options.slice(0, 3);
 }
 
 export default function PositionnementUniquePage() {
@@ -201,8 +179,6 @@ export default function PositionnementUniquePage() {
     });
   }
 
-  const lastAssistant = [...messages].reverse().find(m => m.role === "assistant");
-  const options = lastAssistant && !loading ? parseOptions(lastAssistant.content) : [];
   const ei = Math.max(1, Math.min(etape, 5));
 
   // ── ÉCRAN DE DÉMARRAGE ──
@@ -302,6 +278,7 @@ export default function PositionnementUniquePage() {
         </button>
       </div>
 
+      {/* Étapes */}
       <div className="val-card p-3 space-y-2">
         <div className="flex gap-1">
           {ETAPES.map((e, i) => (
@@ -321,6 +298,7 @@ export default function PositionnementUniquePage() {
         <p className="text-xs text-val-primary font-medium text-right">{pct}% — Étape {ei}/5 : {ETAPES[ei - 1]}</p>
       </div>
 
+      {/* Messages */}
       <div className="val-card p-4 space-y-4 min-h-96 max-h-[480px] overflow-y-auto">
         {messages.map((m, idx) => (
           <div key={idx} className={clsx("flex gap-2", m.role === "user" ? "justify-end" : "justify-start")}>
@@ -347,27 +325,13 @@ export default function PositionnementUniquePage() {
         <div ref={bottomRef} />
       </div>
 
-      {options.length === 3 && (
-        <div className="space-y-2">
-          {options.map((opt, i) => (
-            <button
-              key={i}
-              onClick={() => setInput(`Option ${i + 1} : ${opt}`)}
-              className="w-full text-left px-4 py-3 rounded-xl border border-val-border bg-val-muted hover:border-val-primary hover:bg-val-primary/5 text-sm text-val-text transition-all"
-            >
-              <span className="text-xs font-semibold text-val-primary uppercase tracking-wide block mb-0.5">Option {i + 1}</span>
-              {opt}
-            </button>
-          ))}
-        </div>
-      )}
-
+      {/* Input uniquement — pas de boutons d'options */}
       <div className="flex gap-2">
         <textarea
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder="Écris ta réponse ou choisis une option ci-dessus..."
+          placeholder="Écris ta réponse (ex: Option 1, ou ta propre réponse)..."
           disabled={loading}
           rows={2}
           className="flex-1 bg-val-muted border border-val-border rounded-xl px-4 py-3 text-sm text-val-text placeholder-val-subtle/40 focus:outline-none focus:border-val-primary disabled:opacity-50 resize-none transition-colors"
