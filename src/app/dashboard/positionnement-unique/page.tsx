@@ -32,6 +32,7 @@ function extractJSON(text: string) {
     }
   }
   // Fallback : extraire etape et pct manuellement
+  console.log("ACCUMULATED LAST 200 CHARS:", accumulated.slice(-200));
   const etapeMatch = text.match(/"etape"\s*:\s*(\d+)/);
   const pctMatch = text.match(/"pct"\s*:\s*(\d+)/);
   if (etapeMatch) {
