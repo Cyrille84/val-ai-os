@@ -4,58 +4,58 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Agent, KanbanCard, VaultEntry, SuperAgentMessage } from "@/types";
 
-// ─── Default agents ────────────────────────────────────────────────────────
+// Default agents
 
 const DEFAULT_AGENTS: Agent[] = [
   {
     id: "super-agent",
     name: "Super Agent #Val",
-    description: "COO — Coordinateur principal. Reçoit les instructions, analyse et délègue aux 5 agents chefs.",
+    description: "COO - Coordinateur principal. Recoit les instructions, analyse et delegue aux 5 agents chefs.",
     status: "idle",
     type: "coordinator",
     model: "claude-sonnet-4-6",
     tasksCompleted: 0,
-    instructions: "Coordonner et déléguer aux agents chefs selon les instructions reçues.",
+    instructions: "Coordonner et deleguer aux agents chefs selon les instructions recues.",
   },
   {
-    {
-  id: "meta-agent",
-  name: "Meta-Agent Val",
-  description: "Architecte de Val AI OS. Concoit l'architecture complete de tout agent en 7 etapes.",
-  status: "idle",
-  type: "coordinator",
-  model: "claude-sonnet-4-6",
-  tasksCompleted: 0,
-  instructions: "Identifier le type agent, definir le workflow, produire les System Prompts.",
-},
+    id: "meta-agent",
+    name: "Meta-Agent Val",
+    description: "Architecte de Val AI OS. Concoit l'architecture complete de tout agent en 7 etapes.",
+    status: "idle",
+    type: "coordinator",
+    model: "claude-sonnet-4-6",
+    tasksCompleted: 0,
+    instructions: "Identifier le type agent, definir le workflow, produire les System Prompts.",
+  },
+  {
     id: "agent-positionnement",
     name: "Agent Positionnement Unique",
-    description: "Définit le positionnement stratégique, la proposition de valeur unique et la différenciation marché.",
+    description: "Definit le positionnement strategique, la proposition de valeur unique et la differenciation marche.",
     status: "idle",
     type: "specialist",
     model: "claude-sonnet-4-6",
     tasksCompleted: 0,
-    instructions: "Analyser et affiner le positionnement, le message central et la différenciation.",
+    instructions: "Analyser et affiner le positionnement, le message central et la differenciation.",
   },
   {
     id: "agent-attraction",
     name: "Agent Attraction",
-    description: "Stratégies d'acquisition, croissance d'audience, SEO, contenu organique et publicité payante.",
+    description: "Strategies d'acquisition, croissance d'audience, SEO, contenu organique et publicite payante.",
     status: "idle",
     type: "specialist",
     model: "claude-sonnet-4-6",
     tasksCompleted: 0,
-    instructions: "Générer des stratégies d'attraction et de génération de leads.",
+    instructions: "Generer des strategies d'attraction et de generation de leads.",
   },
   {
     id: "agent-education",
     name: "Agent Education",
-    description: "Contenu pédagogique, nurturing, onboarding, formation et engagement de l'audience.",
+    description: "Contenu pedagogique, nurturing, onboarding, formation et engagement de l'audience.",
     status: "idle",
     type: "specialist",
     model: "claude-sonnet-4-6",
     tasksCompleted: 0,
-    instructions: "Créer et structurer le contenu éducatif pour nourrir l'audience.",
+    instructions: "Creer et structurer le contenu educatif pour nourrir l'audience.",
   },
   {
     id: "agent-conversion",
@@ -70,16 +70,16 @@ const DEFAULT_AGENTS: Agent[] = [
   {
     id: "agent-scale",
     name: "Agent Scale",
-    description: "Systémisation, automatisation, délégation et scalabilité des processus et revenus.",
+    description: "Systemisation, automatisation, delegation et scalabilite des processus et revenus.",
     status: "idle",
     type: "specialist",
     model: "claude-sonnet-4-6",
     tasksCompleted: 0,
-    instructions: "Identifier et mettre en place les systèmes de scale.",
+    instructions: "Identifier et mettre en place les systemes de scale.",
   },
 ];
 
-// ─── Agents ────────────────────────────────────────────────────────────────
+// Agents Store
 
 interface AgentStore {
   agents: Agent[];
@@ -98,12 +98,12 @@ export const useAgentStore = create<AgentStore>()(
       removeAgent: (id) => set((s) => ({ agents: s.agents.filter((a) => a.id !== id) })),
     }),
     {
-      name: "val-agents-v2", // bumped version resets to new defaults
+      name: "val-agents-v3",
     }
   )
 );
 
-// ─── Kanban ────────────────────────────────────────────────────────────────
+// Kanban Store
 
 interface KanbanStore {
   cards: KanbanCard[];
@@ -118,8 +118,8 @@ export const useKanbanStore = create<KanbanStore>()(
     (set) => ({
       cards: [
         { id: "c1", title: "Configurer les 5 agents chefs", status: "todo", priority: "high", createdAt: new Date().toISOString(), tags: ["setup"] },
-        { id: "c2", title: "Définir le positionnement unique", status: "in_progress", priority: "critical", createdAt: new Date().toISOString(), tags: ["positionnement"] },
-        { id: "c3", title: "Créer la stratégie d'attraction", status: "backlog", priority: "high", createdAt: new Date().toISOString(), tags: ["attraction"] },
+        { id: "c2", title: "Definir le positionnement unique", status: "in_progress", priority: "critical", createdAt: new Date().toISOString(), tags: ["positionnement"] },
+        { id: "c3", title: "Creer la strategie d'attraction", status: "backlog", priority: "high", createdAt: new Date().toISOString(), tags: ["attraction"] },
         { id: "c4", title: "Construire le tunnel de conversion", status: "backlog", priority: "medium", createdAt: new Date().toISOString(), tags: ["conversion"] },
       ],
       addCard: (card) => set((s) => ({ cards: [...s.cards, card] })),
@@ -133,7 +133,7 @@ export const useKanbanStore = create<KanbanStore>()(
   )
 );
 
-// ─── Vault ─────────────────────────────────────────────────────────────────
+// Vault Store
 
 interface VaultStore {
   entries: VaultEntry[];
@@ -146,8 +146,8 @@ export const useVaultStore = create<VaultStore>()(
   persist(
     (set) => ({
       entries: [
-        { id: "v1", key: "SUPER_AGENT_ROLE", value: "COO — Coordinateur des 5 agents chefs.", category: "prompt", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { id: "v2", key: "PROJECT_CONTEXT", value: "Val AI OS — Dashboard de gestion d'agents IA. 5 agents chefs : Positionnement, Attraction, Education, Conversion, Scale.", category: "context", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        { id: "v1", key: "SUPER_AGENT_ROLE", value: "COO - Coordinateur des 5 agents chefs.", category: "prompt", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        { id: "v2", key: "PROJECT_CONTEXT", value: "Val AI OS - Dashboard de gestion d'agents IA. 5 agents chefs : Positionnement, Attraction, Education, Conversion, Scale.", category: "context", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
       ],
       addEntry: (entry) => set((s) => ({ entries: [...s.entries, entry] })),
       updateEntry: (id, patch) =>
@@ -158,7 +158,7 @@ export const useVaultStore = create<VaultStore>()(
   )
 );
 
-// ─── Chat (Super Agent) ────────────────────────────────────────────────────
+// Chat Store
 
 interface ChatStore {
   messages: SuperAgentMessage[];
