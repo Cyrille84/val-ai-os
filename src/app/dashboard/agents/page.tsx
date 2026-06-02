@@ -20,9 +20,10 @@ const AGENT_COLORS: Record<string, { bg: string; border: string; text: string }>
   "agent-education": { bg: "bg-violet-400/10", border: "border-violet-400/20", text: "text-violet-400" },
   "agent-conversion": { bg: "bg-orange-400/10", border: "border-orange-400/20", text: "text-orange-400" },
   "agent-scale": { bg: "bg-cyan-400/10", border: "border-cyan-400/20", text: "text-cyan-400" },
+  "meta-agent": { bg: "bg-purple-400/10", border: "border-purple-400/20", text: "text-purple-400" },
 };
 
-const CORE_IDS = ["super-agent", "agent-positionnement", "agent-attraction", "agent-education", "agent-conversion", "agent-scale"];
+const CORE_IDS = ["super-agent", "agent-positionnement", "meta-agent", "agent-attraction", "agent-education", "agent-conversion", "agent-scale"];
 
 function AgentCard({ agent }: { agent: Agent }) {
   const updateAgent = useAgentStore((s) => s.updateAgent);
@@ -57,28 +58,35 @@ function AgentCard({ agent }: { agent: Agent }) {
 
       <div className="flex items-center justify-between pt-1">
         <span className="text-xs font-mono text-val-subtle/60 bg-val-muted px-2 py-0.5 rounded">{agent.model}</span>
-        {agent.id === "agent-positionnement" ? (
-          <a
-            href="/dashboard/positionnement-unique"
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
-          >
-            <Play size={12} /> Ouvrir
-          </a>
-        ) : (
-          <button
-            onClick={() => updateAgent(agent.id, { status: agent.status === "running" ? "idle" : "running" })}
-            className={clsx(
-              "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all",
-              agent.status === "running"
-                ? "bg-yellow-400/15 text-yellow-400 hover:bg-yellow-400/25"
-                : "bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
-            )}
-          >
-            {agent.status === "running" ? <><Pause size={12} /> Pause</> : <><Play size={12} /> Start</>}
-          </button>
+        {agent.id === "agent-positionnement" || agent.id === "meta-agent" ? (
+
+          href = { agent.id === "agent-positionnement" ? "/dashboard/positionnement-unique" : "/dashboard/meta-agent" }
+    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
+  >
+        <Play size={12} /> Ouvrir
+      </a>
+      ) : (
+      <a
+        href="/dashboard/positionnement-unique"
+        className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
+      >
+        <Play size={12} /> Ouvrir
+      </a>
+      ) : (
+      <button
+        onClick={() => updateAgent(agent.id, { status: agent.status === "running" ? "idle" : "running" })}
+        className={clsx(
+          "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all",
+          agent.status === "running"
+            ? "bg-yellow-400/15 text-yellow-400 hover:bg-yellow-400/25"
+            : "bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
         )}
-      </div>
+      >
+        {agent.status === "running" ? <><Pause size={12} /> Pause</> : <><Play size={12} /> Start</>}
+      </button>
+        )}
     </div>
+    </div >
   );
 }
 
