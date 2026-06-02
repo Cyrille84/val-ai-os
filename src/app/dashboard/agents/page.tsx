@@ -60,26 +60,26 @@ function AgentCard({ agent }: { agent: Agent }) {
         <span className="text-xs font-mono text-val-subtle/60 bg-val-muted px-2 py-0.5 rounded">{agent.model}</span>
         {agent.id === "agent-positionnement" || agent.id === "meta-agent" ? (
 
-          href = { agent.id === "agent-positionnement" ? "/dashboard/positionnement-unique" : "/dashboard/meta-agent" }
-    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
+          <a> href = {agent.id === "agent-positionnement" ? "/dashboard/positionnement-unique" : "/dashboard/meta-agent"}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
   >
-        <Play size={12} /> Ouvrir
-      </a>
-      ) : (
+            <Play size={12} /> Ouvrir
+          </a>
+        ) : (
 
-      <button
-        onClick={() => updateAgent(agent.id, { status: agent.status === "running" ? "idle" : "running" })}
-        className={clsx(
-          "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all",
-          agent.status === "running"
-            ? "bg-yellow-400/15 text-yellow-400 hover:bg-yellow-400/25"
-            : "bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
+          <button
+            onClick={() => updateAgent(agent.id, { status: agent.status === "running" ? "idle" : "running" })}
+            className={clsx(
+              "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all",
+              agent.status === "running"
+                ? "bg-yellow-400/15 text-yellow-400 hover:bg-yellow-400/25"
+                : "bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
+            )}
+          >
+            {agent.status === "running" ? <><Pause size={12} /> Pause</> : <><Play size={12} /> Start</>}
+          </button>
         )}
-      >
-        {agent.status === "running" ? <><Pause size={12} /> Pause</> : <><Play size={12} /> Start</>}
-      </button>
-        )}
-    </div>
+      </div>
     </div >
   );
 }
