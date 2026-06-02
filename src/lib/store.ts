@@ -18,6 +18,16 @@ const DEFAULT_AGENTS: Agent[] = [
     instructions: "Coordonner et déléguer aux agents chefs selon les instructions reçues.",
   },
   {
+    {
+  id: "meta-agent",
+  name: "Meta-Agent Val",
+  description: "L'architecte de Val AI OS. Conçoit l'architecture complète de tout agent en 7 étapes — COO, Directeur ou Employé IA.",
+  status: "idle",
+  type: "coordinator",
+  model: "claude-sonnet-4-6",
+  tasksCompleted: 0,
+  instructions: "Identifier le type d'agent, définir le workflow, produire les System Prompts.",
+},
     id: "agent-positionnement",
     name: "Agent Positionnement Unique",
     description: "Définit le positionnement stratégique, la proposition de valeur unique et la différenciation marché.",
