@@ -66,13 +66,7 @@ function AgentCard({ agent }: { agent: Agent }) {
         <Play size={12} /> Ouvrir
       </a>
       ) : (
-      <a
-        href="/dashboard/positionnement-unique"
-        className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
-      >
-        <Play size={12} /> Ouvrir
-      </a>
-      ) : (
+
       <button
         onClick={() => updateAgent(agent.id, { status: agent.status === "running" ? "idle" : "running" })}
         className={clsx(
