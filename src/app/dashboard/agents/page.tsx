@@ -59,14 +59,13 @@ function AgentCard({ agent }: { agent: Agent }) {
       <div className="flex items-center justify-between pt-1">
         <span className="text-xs font-mono text-val-subtle/60 bg-val-muted px-2 py-0.5 rounded">{agent.model}</span>
         {agent.id === "agent-positionnement" || agent.id === "meta-agent" ? (
-
-          <a> href = {agent.id === "agent-positionnement" ? "/dashboard/positionnement-unique" : "/dashboard/meta-agent"}
+          <a
+            href={agent.id === "agent-positionnement" ? "/dashboard/positionnement-unique" : "/dashboard/meta-agent"}
             className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all bg-val-primary/15 text-val-primary hover:bg-val-primary/25"
-  >
+          >
             <Play size={12} /> Ouvrir
           </a>
         ) : (
-
           <button
             onClick={() => updateAgent(agent.id, { status: agent.status === "running" ? "idle" : "running" })}
             className={clsx(
@@ -80,7 +79,7 @@ function AgentCard({ agent }: { agent: Agent }) {
           </button>
         )}
       </div>
-    </div >
+    </div>
   );
 }
 
